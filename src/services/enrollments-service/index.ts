@@ -13,7 +13,6 @@ async function getAddressFromCEP(cep: string) {
     throw notFoundError();
   }
 
-  console.log(result.data)
   const object = {
       logradouro: result.data.logradouro,
       complemento:result.data.complemento,
