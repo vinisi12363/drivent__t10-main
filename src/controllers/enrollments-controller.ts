@@ -2,6 +2,7 @@ import { Response } from 'express';
 import httpStatus from 'http-status';
 import { AuthenticatedRequest } from '@/middlewares';
 import enrollmentsService from '@/services/enrollments-service';
+import addressRepository from '@/repositories/address-repository';
 
 export async function getEnrollmentByUser(req: AuthenticatedRequest, res: Response) {
   const { userId } = req;
@@ -30,24 +31,28 @@ export async function postCreateOrUpdateEnrollment(req: AuthenticatedRequest, re
 
 
 export async function getAddressFromCEP(req: AuthenticatedRequest, res: Response) {
-  const cepRegex = /^\d{8}$/;
-  const {cep} = req.params  
-  if(cep.length>8)
-  return res.send(httpStatus.BAD_REQUEST)
+  
+  const {cep} = req.params ;
+  if (cep.length !== 8){
+    return res.status(httpStatus.BAD_REQUEST)
+  }
 
-
-  if(cepRegex.test(cep)){
+  
     try {
       const address = await enrollmentsService.getAddressFromCEP(cep);
+ 
+     
+      if (address.bairro === undefined || address.cidade=== undefined || address.complemento === undefined|| address.logradouro === undefined || address.uf === undefined){
+          return res.status(204).send("cep nao encontrado")
+
+      }
       res.status(httpStatus.OK).send(address);
     } catch (error) {
       if (error.name === 'NotFoundError') {
         return res.send(httpStatus.NO_CONTENT);
       }
     }
-  }else{
-    return res.send(httpStatus.BAD_REQUEST)
-  }
+
 
  
 }
