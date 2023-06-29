@@ -30,15 +30,24 @@ export async function postCreateOrUpdateEnrollment(req: AuthenticatedRequest, re
 
 
 export async function getAddressFromCEP(req: AuthenticatedRequest, res: Response) {
-
+  const cepRegex = /^\d{8}$/;
   const {cep} = req.params  
-  
-  try {
-    const address = await enrollmentsService.getAddressFromCEP(cep);
-    res.status(httpStatus.OK).send(address);
-  } catch (error) {
-    if (error.name === 'NotFoundError') {
-      return res.send(httpStatus.NO_CONTENT);
+  if(cep.length>8)
+  return res.send(httpStatus.BAD_REQUEST)
+
+
+  if(cepRegex.test(cep)){
+    try {
+      const address = await enrollmentsService.getAddressFromCEP(cep);
+      res.status(httpStatus.OK).send(address);
+    } catch (error) {
+      if (error.name === 'NotFoundError') {
+        return res.send(httpStatus.NO_CONTENT);
+      }
     }
+  }else{
+    return res.send(httpStatus.BAD_REQUEST)
   }
+
+ 
 }
