@@ -42,7 +42,8 @@ async function getOneWithAddressByUserId(userId: number): Promise<GetOneWithAddr
 type GetOneWithAddressByUserIdResult = Omit<Enrollment, 'userId' | 'createdAt' | 'updatedAt'>;
 
 function getFirstAddress(firstAddress: Address): GetAddressResult {
-  if (!firstAddress) return null;
+  const n:any = null;
+  if (!firstAddress) return n;
 
   return exclude(firstAddress, 'createdAt', 'updatedAt', 'enrollmentId');
 }
