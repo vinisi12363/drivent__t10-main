@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Response, query } from 'express';
 import httpStatus from 'http-status';
 import { AuthenticatedRequest } from '@/middlewares';
 import enrollmentsService from '@/services/enrollments-service';
@@ -31,21 +31,12 @@ export async function postCreateOrUpdateEnrollment(req: AuthenticatedRequest, re
 
 
 export async function getAddressFromCEP(req: AuthenticatedRequest, res: Response) {
-  
-  const {cep} = req.params ;
-  if (cep.length !== 8){
-    return res.status(httpStatus.BAD_REQUEST)
-  }
 
+  const cep:string = req.query.cep.toString();
+  console.log("CEP", cep)
   
     try {
       const address = await enrollmentsService.getAddressFromCEP(cep);
- 
-     
-      if (address.bairro === undefined || address.cidade=== undefined || address.complemento === undefined|| address.logradouro === undefined || address.uf === undefined){
-          return res.status(204).send("cep nao encontrado")
-
-      }
       res.status(httpStatus.OK).send(address);
     } catch (error) {
       if (error.name === 'NotFoundError') {
