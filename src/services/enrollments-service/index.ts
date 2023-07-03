@@ -16,9 +16,7 @@ async function getAddressFromCEP(cep: string) {
   if(result.data?.erro){
     throw requestError(400, 'bad Request')
   }
-
-
-
+  
   return {
             logradouro: result.data.logradouro,
             complemento:result.data.complemento,
@@ -55,17 +53,40 @@ type GetAddressResult = Omit<Address, 'createdAt' | 'updatedAt' | 'enrollmentId'
 
 async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollmentWithAddress) {
   
-  console.log('params: id', params.userId)
-  const enrollment = exclude(params, 'address');
-  const address = getAddressForUpsert(params.address);
-
-  // TODO - Verificar se o CEP é válido antes de associar ao enrollment.
-  const isValidCEP = await getAddressFromCEP(params.address.cep)
-  console.log("is valid cep", isValidCEP)
-
+  console.log('params', params)
 
  
-    const newEnrollment = await enrollmentRepository.upsert(params.userId, enrollment, exclude(enrollment, 'userId'));
+  const address = getAddressForUpsert(params.address);
+
+  
+  const isValidCEP = await getAddressFromCEP(params.address.cep)
+  console.log("is valid cep", isValidCEP)
+  const birthdayString = params.birthday.toString();
+  const [year, month, day] = birthdayString.split('-');
+  const birthdayFormatted = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+ 
+  if (isNaN(birthdayFormatted.getTime())) {
+    console.log('invalid date');
+    return;
+  }
+  let body = {
+    name:params.name,
+    cpf:params.cpf,
+    birthday:birthdayFormatted,
+    phone:params.phone,
+    userId:params.userId,
+    address:{
+      cep:params.address.cep,
+      street:params.address.street,
+      city:params.address.city,
+      number:params.address.number,
+      state:params.address.state,
+      neighborhood:params.address.neighborhood,
+      addressDetail:params.address.addressDetail
+    }
+  }
+    const enrollment = exclude(body, 'address');
+    const newEnrollment = await enrollmentRepository.upsert(body.userId, enrollment, exclude(enrollment, 'userId'));
 
     console.log("newEnrollmenmt", newEnrollment)
     await addressRepository.upsert(newEnrollment.id, address, address);
