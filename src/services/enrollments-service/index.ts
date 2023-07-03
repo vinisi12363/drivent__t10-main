@@ -62,7 +62,6 @@ type GetAddressResult = Omit<Address, 'createdAt' | 'updatedAt' | 'enrollmentId'
 
 async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollmentWithAddress) {
   const address = getAddressForUpsert(params.address);
-  let formattedCEP = params.address.cep.replace(/-/g, "");
   const birthdayString = params.birthday.toString();
   const [year, month, day] = birthdayString.split('-');
   const birthdayFormatted = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
@@ -82,7 +81,7 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
     phone:params.phone,
     userId:params.userId,
     address:{
-      cep:formattedCEP,
+      cep:params.address.cep,
       street:params.address.street,
       city:params.address.city,
       number:params.address.number,
