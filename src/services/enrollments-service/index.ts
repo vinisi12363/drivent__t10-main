@@ -10,7 +10,7 @@ async function getAddressFromCEP(cep: string) {
  
 
   const result = await request.get(`${process.env.VIA_CEP_API}/${cep}/json/`)
-  
+
   if (!result.data || result.data.erro) {
     throw notFoundError();
   }
@@ -84,7 +84,11 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
       addressDetail:params.address.addressDetail
     }
   } 
-    await getAddressFromCEP(params.address.cep)
+ 
+    const verifyCep = await getAddressFromCEP(params.address.cep)
+    if (!verifyCep.cidade ||verifyCep.cidade === 'undefined') {
+      throw notFoundError();
+    }
     const enrollment = exclude(body, 'address');
     const newEnrollment = await enrollmentRepository.upsert(body.userId, enrollment, exclude(enrollment, 'userId'));
 
