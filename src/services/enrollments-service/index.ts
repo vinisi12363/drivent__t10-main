@@ -1,5 +1,6 @@
 import { Address, Enrollment } from '@prisma/client';
 import { request } from '@/utils/request';
+import  httpStatus  from 'http-status';
 import { invalidDataError, notFoundError, requestError } from '@/errors';
 import addressRepository, { CreateAddressParams } from '@/repositories/address-repository';
 import enrollmentRepository, { CreateEnrollmentParams } from '@/repositories/enrollment-repository';
@@ -13,7 +14,7 @@ async function getAddressFromCEP(cep: string) {
   if (!result.data) {
     throw notFoundError();
   }
-  if(result.data?.erro){
+  if(result.data?.erro || result.status === httpStatus.BAD_REQUEST){
     throw requestError(400, 'bad Request')
   }
   
@@ -59,12 +60,12 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
   const address = getAddressForUpsert(params.address);
 
   
-  const isValidCEP = await getAddressFromCEP(params.address.cep)
-  console.log("is valid cep", isValidCEP)
+
+
+
   const birthdayString = params.birthday.toString();
   const [year, month, day] = birthdayString.split('-');
   const birthdayFormatted = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
- 
   if (isNaN(birthdayFormatted.getTime())) {
     console.log('invalid date');
     return;
@@ -84,7 +85,8 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
       neighborhood:params.address.neighborhood,
       addressDetail:params.address.addressDetail
     }
-  }
+  } 
+    await getAddressFromCEP(params.address.cep)
     const enrollment = exclude(body, 'address');
     const newEnrollment = await enrollmentRepository.upsert(body.userId, enrollment, exclude(enrollment, 'userId'));
 
