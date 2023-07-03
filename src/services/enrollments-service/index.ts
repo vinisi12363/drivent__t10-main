@@ -19,7 +19,7 @@ type AddressObject = {
 async function getAddressFromCEP(cep: string) {
   const result = await request.get(`${process.env.VIA_CEP_API}/${cep}/json/`);
 
-  if (result?.data?.erro||!result?.data ) {
+  if (result?.data?.erro|| !result?.data ) {
     throw notFoundError();
   }
 
@@ -59,7 +59,7 @@ function getFirstAddress(firstAddress: Address): GetAddressResult {
 
 type GetAddressResult = Omit<Address, 'createdAt' | 'updatedAt' | 'enrollmentId'>;
 
-
+/*
 async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollmentWithAddress) {
   const address = getAddressForUpsert(params.address);
   const birthdayString = params.birthday.toString();
@@ -93,6 +93,20 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
    
     const enrollment = {...exclude(params, 'address')};
     const newEnrollment = await enrollmentRepository.upsert(body.userId, enrollment, exclude(enrollment, 'userId'));
+
+    console.log("newEnrollmenmt", newEnrollment)
+    await addressRepository.upsert(newEnrollment.id, address, address);
+  
+
+} */ 
+
+async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollmentWithAddress) {
+    const address = getAddressForUpsert(params.address);
+  
+    await getAddressFromCEP(address.cep)
+
+    const enrollment = {...exclude(params, 'address')};
+    const newEnrollment = await enrollmentRepository.upsert(params.userId, enrollment, exclude(enrollment, 'userId'));
 
     console.log("newEnrollmenmt", newEnrollment)
     await addressRepository.upsert(newEnrollment.id, address, address);
