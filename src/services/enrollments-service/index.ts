@@ -58,9 +58,9 @@ function getFirstAddress(firstAddress: Address): GetAddressResult {
 
 type GetAddressResult = Omit<Address, 'createdAt' | 'updatedAt' | 'enrollmentId'>;
 
-/*   ta lindo mas n ta passando no teste....
+
 async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollmentWithAddress) {
-  const enrollment = exclude(params, 'address');
+  
   const address = getAddressForUpsert(params.address);
 
   let formattedCEP = params.address.cep.replace(/-/g, "");
@@ -90,25 +90,16 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
   
 
    await getAddressFromCEP(address.cep)
-    
-    const newEnrollment = await enrollmentRepository.upsert(params.userId, enrollment, exclude(enrollment, 'userId'));
+   const enrollment = exclude(body, 'address');
+    const newEnrollment = await enrollmentRepository.upsert(body.userId, enrollment, exclude(enrollment, 'userId'));
 
     console.log("newEnrollmenmt", newEnrollment)
     await addressRepository.upsert(newEnrollment.id, address, address);
   
 
-} */
+} 
 
-async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollmentWithAddress) {
-  const enrollment = exclude(params, 'address');
-  const address = getAddressForUpsert(params.address);
 
-  await getAddressFromCEP(params.address.cep);
-
-  const newEnrollment = await enrollmentRepository.upsert(params.userId, enrollment, exclude(enrollment, 'userId'));
-
-  await addressRepository.upsert(newEnrollment.id, address, address);
-}
 
 function getAddressForUpsert(address: CreateAddressParams) {
   return {
