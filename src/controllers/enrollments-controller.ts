@@ -27,7 +27,6 @@ export async function postCreateOrUpdateEnrollment(req: AuthenticatedRequest, re
 
     return res.sendStatus(httpStatus.OK);
   } catch (error) {
-    console.log("error", error)
     return res.sendStatus(httpStatus.BAD_REQUEST);
   }
 }
@@ -44,10 +43,8 @@ export async function getAddressFromCEP(req: AuthenticatedRequest, res: Response
       res.status(httpStatus.OK).send(address);
     } catch (error:any) {
       if (error.name === 'NotFoundError') {
-        return res.send(httpStatus.NO_CONTENT);
+        return res.status(httpStatus.NO_CONTENT).send(httpStatus.NO_CONTENT);
       }
-      if(error.name === 'RequestError')
-        return res.status(400).send(httpStatus.BAD_REQUEST)
     }
 
 
