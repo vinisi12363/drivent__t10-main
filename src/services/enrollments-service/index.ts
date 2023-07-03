@@ -5,24 +5,23 @@ import { invalidDataError, notFoundError, requestError } from '@/errors';
 import addressRepository, { CreateAddressParams } from '@/repositories/address-repository';
 import enrollmentRepository, { CreateEnrollmentParams } from '@/repositories/enrollment-repository';
 import { exclude } from '@/utils/prisma-utils';
+import { ViaCEPAddress } from '@/protocols';
 
 async function getAddressFromCEP(cep: string) {
- 
+  const { data } = await request.get(`${process.env.VIA_CEP_API}/${cep}/json/`);
 
-  const result = await request.get(`${process.env.VIA_CEP_API}/${cep}/json/`)
-
-  if (!result.data || result.data.erro) {
+  if (!data || data.erro) {
     throw notFoundError();
   }
 
-  
-  return {
-            logradouro: result.data.logradouro,
-            complemento:result.data.complemento,
-            bairro: result.data.bairro,
-            cidade: result.data.localidade,
-            uf: result.data.uf 
-          }
+  const address = { 
+    logradouro:data.logradouro,
+    complemento:data.complemento,
+    bairro:data.bairro,
+    cidade:data.logradouro,
+    uf:data.uf
+   };
+  return address;
 }
 
 async function getOneWithAddressByUserId(userId: number): Promise<GetOneWithAddressByUserIdResult> {
@@ -50,17 +49,12 @@ function getFirstAddress(firstAddress: Address): GetAddressResult {
 
 type GetAddressResult = Omit<Address, 'createdAt' | 'updatedAt' | 'enrollmentId'>;
 
+/*   ta lindo mas n ta passando no teste....
 async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollmentWithAddress) {
-  
-  console.log('params', params)
-
- 
+  const enrollment = exclude(params, 'address');
   const address = getAddressForUpsert(params.address);
 
-  
-
-
-
+  let formattedCEP = params.address.cep.replace(/-/g, "");
   const birthdayString = params.birthday.toString();
   const [year, month, day] = birthdayString.split('-');
   const birthdayFormatted = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
@@ -75,7 +69,7 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
     phone:params.phone,
     userId:params.userId,
     address:{
-      cep:params.address.cep,
+      cep:formattedCEP,
       street:params.address.street,
       city:params.address.city,
       number:params.address.number,
@@ -84,18 +78,27 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
       addressDetail:params.address.addressDetail
     }
   } 
- 
-    const verifyCep = await getAddressFromCEP(params.address.cep)
-    if (!verifyCep.cidade ||verifyCep.cidade === 'undefined') {
-      throw notFoundError();
-    }
-    const enrollment = exclude(body, 'address');
-    const newEnrollment = await enrollmentRepository.upsert(body.userId, enrollment, exclude(enrollment, 'userId'));
+  
+
+   await getAddressFromCEP(address.cep)
+    
+    const newEnrollment = await enrollmentRepository.upsert(params.userId, enrollment, exclude(enrollment, 'userId'));
 
     console.log("newEnrollmenmt", newEnrollment)
     await addressRepository.upsert(newEnrollment.id, address, address);
   
 
+} */
+
+async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollmentWithAddress) {
+  const enrollment = exclude(params, 'address');
+  const address = getAddressForUpsert(params.address);
+
+  await getAddressFromCEP(address.cep);
+
+  const newEnrollment = await enrollmentRepository.upsert(params.userId, enrollment, exclude(enrollment, 'userId'));
+
+  await addressRepository.upsert(newEnrollment.id, address, address);
 }
 
 function getAddressForUpsert(address: CreateAddressParams) {
