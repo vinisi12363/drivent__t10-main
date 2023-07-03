@@ -35,7 +35,9 @@ export async function getAddressFromCEP(req: AuthenticatedRequest, res: Response
 
   const cep: string = req.query.cep ? req.query.cep.toString() : '';
  
-  
+  if(!cep || cep.length !== 8)
+  return res.send(httpStatus.NO_CONTENT);
+
     try {
       const address = await enrollmentsService.getAddressFromCEP(cep);
       res.status(httpStatus.OK).send(address);
