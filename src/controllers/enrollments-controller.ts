@@ -40,6 +40,7 @@ export async function getAddressFromCEP(req: AuthenticatedRequest, res: Response
 
     try {
       const address = await enrollmentsService.getAddressFromCEP(cep);
+      console.log("address", address)
       res.status(httpStatus.OK).send(address);
     } catch (error:any) {
       if (error.name === 'NotFoundError') {

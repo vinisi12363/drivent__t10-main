@@ -10,13 +10,15 @@ async function getAddressFromCEP(cep: string) {
  
 
   const result = await request.get(`${process.env.VIA_CEP_API}/${cep}/json/`);
-
+  console.log("result", result)
+  
+  if(result.data?.erro || result.status === httpStatus.BAD_REQUEST || cep.length !== 8){
+    throw requestError(400, 'bad Request')
+  }
   if (!result.data) {
     throw notFoundError();
   }
-  if(result.data?.erro || result.status === httpStatus.BAD_REQUEST){
-    throw requestError(400, 'bad Request')
-  }
+ 
   
   return {
             logradouro: result.data.logradouro,
