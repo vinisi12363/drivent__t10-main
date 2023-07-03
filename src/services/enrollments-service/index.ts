@@ -65,15 +65,13 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
   const birthdayString = params.birthday.toString();
   const [year, month, day] = birthdayString.split('-');
   const birthdayFormatted = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-  
+  const formattedCep = params.address.cep.replace(/-/g, '');
   const ValidAddress = await getAddressFromCEP(address.cep)
-  if (ValidAddress.cidade === 'undefined'){
-    throw notFoundError();
-  }
-  if (isNaN(birthdayFormatted.getTime())) {
-    console.log('invalid date');
-    return;
-  }
+
+  if (ValidAddress.cidade === 'undefined')throw notFoundError();
+  
+  if (isNaN(birthdayFormatted.getTime()))return;
+  
   let body = {
     name:params.name,
     cpf:params.cpf,
@@ -81,7 +79,7 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
     phone:params.phone,
     userId:params.userId,
     address:{
-      cep:params.address.cep,
+      cep:formattedCep,
       street:params.address.street,
       city:params.address.city,
       number:params.address.number,
@@ -94,7 +92,7 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
 
    
     const enrollment = {...exclude(params, 'address')};
-    const newEnrollment = await enrollmentRepository.upsert(params.userId, enrollment, exclude(enrollment, 'userId'));
+    const newEnrollment = await enrollmentRepository.upsert(body.userId, enrollment, exclude(enrollment, 'userId'));
 
     console.log("newEnrollmenmt", newEnrollment)
     await addressRepository.upsert(newEnrollment.id, address, address);
