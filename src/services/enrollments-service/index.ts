@@ -90,7 +90,7 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
   
 
    await getAddressFromCEP(address.cep)
-   const enrollment = exclude(body, 'address');
+    const enrollment = {...exclude(body, 'address')};
     const newEnrollment = await enrollmentRepository.upsert(body.userId, enrollment, exclude(enrollment, 'userId'));
 
     console.log("newEnrollmenmt", newEnrollment)
